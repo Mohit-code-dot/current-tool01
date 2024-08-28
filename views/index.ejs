@@ -62,16 +62,10 @@
     <main>
       <div class="mainImg">
         <div class="ListingImage">
-      <% images.forEach((value) => {%>
-        <img src="<%= value %>" alt="">
-      <% });%> 
+        <img src="" alt="">
     </div>
         <div class="mainBigImage image-container" id="image-container">
-          <% images.forEach((value, index) => {
-            if (index === 0) { %>
-              <img src="<%= value %>" alt="">
-            <% }
-          }); %>
+              <img src="" alt="">
           <div id="mouse-overlay"></div>
           <div id="overlay"></div>
         </div>
@@ -149,7 +143,7 @@
           <img src="../Img/list.svg" alt="" />
         </div>
         <div class="div" style="width: 40%"></div>
-        <form class="dashboard" method="post" action="/">
+        <form class="dashboard" method="post" action="/" enctype="multipart/form-data">
           <span id="removeApp" onclick="removeSideMenu()"
             ><img src="../Img/x-square.svg" alt="" srcset=""
           /></span>
@@ -211,7 +205,8 @@
 
           <div class="dashboard03">
             <label>Image:</label>
-            <a id="imageUploadButton" onclick="uploadImage()">Upload Image</a>
+            <input type="file" name="file" multiple="multiple">
+        <input type="submit" value="Upload">
           </div>
           <div class="dashboard04">
             <label>Brand Deatils:</label>
@@ -290,154 +285,24 @@
           type="file"
           class="file"
           multiple="multiple"
-          accept="image/png, image/jpeg, image/jpg"
         />
       </div>
 
       <form id="saved-form">
-        <div class="header">
+        <!-- <div class="header">
           <h3>Saved In Server</h3>
           <button type="submit">Delete</button>
-        </div>
-        <div class="saved-div"></div>
+        </div> -->
+        <!-- <div class="saved-div"></div> -->
       </form>
 
       <form id="queued-form">
         <div class="header">
-          <h3>Queued In Frontend</h3>
-          <button type="submit">Upload</button>
+          <h3>Saved In Server</h3>
         </div>
         <div class="queued-div"></div>
       </form>
     </main>
-
-    <script>
-      let queuedImageArray = [],
-        savedForm = document.querySelector("#saved-form"),
-        uploadImagesToServer = document.querySelector("#uploadImagesToServer"),
-        queuedForm = document.querySelector("#queued-form"),
-        savedDiv = document.querySelector(".saved-div"),
-        queuedDiv = document.querySelector(".queued-div"),
-        inputDiv = document.querySelector(".input-div"),
-        input = document.querySelector(".input-div input"),
-        serverMessage = document.querySelector(".server-message"),
-        savedImages = JSON.parse('<%-JSON.stringify(images)%>'),
-        deleteImages = [];
-
-      // SAVED IN SERVER IMAGE
-      if(savedImages) displaySavedImages()
-
-      function displaySavedImages(){
-        let images = "";
-        savedImages.forEach((image, index) => {
-        images += `<div class="image">
-        <img src="http://localhost:5000/uploads/${image}" alt="image">
-        <span onclick="deleteSavedImage(${index})">&times;</span>
-        </div>`;
-        });
-        savedDiv.innerHTML = images
-      }
-
-      function deleteSavedImage(index){
-        deleteImages.push(savedImages[index])
-        savedImages.splice(index, 1)
-        displaySavedImages();
-      }
-
-      savedForm.addEventListener("submit",(e)=>{
-        e.preventDefault();
-        deleteImagesFromServer();
-      })
-
-      function deleteImagesFromServer(){
-        fetch('/deleteImage', { 
-            method: 'PUT',
-            headers: {
-                'Accept' : 'application/json, text/plain, */*',
-                'Content-Type' : 'application/json'
-            },
-            body: JSON.stringify({deleteImages})
-        })
-        .then(Response =>{
-            if(Response.status == 200) throw Error(Response.statusText)
-            deleteImages = [];
-            serverMessage.innerHTML = Response.statusText
-            serverMessage.style.cssText = "background-color: #f8d7da; color: #b71c1c"
-        })
-        .catch(error=>{
-            serverMessage.innerHTML = error
-            serverMessage.style.cssText = "background-color: #d4edda; color: #1b5e20;"
-        })
-      }
-
-      // QUEUED IN FRONTEND IMAGEES
-      input.addEventListener("change", () => {
-        const files = input.files;
-        for (let i = 0; i < files.length; i++) {
-          queuedImageArray.push(files[i]);
-        }
-        queuedForm.reset();
-        displayQueuedImages();
-      });
-
-      inputDiv.addEventListener("drop", (e) => {
-        e.preventDefault();
-        const files = e.dataTransfer.files;
-        for (let i = 0; i < files.length; i++) {
-          if (!files[i].type.match("image")) continue;
-
-          if (queuedImageArray.every((Image) => Image.name !== files[i].name))
-            queuedImageArray.push(files[i]);
-        }
-        displayQueuedImages();
-      });
-
-      function displayQueuedImages() {
-        let images = "";
-        queuedImageArray.forEach((image, index) => {
-        images += `<div class="image">
-        <img src="${URL.createObjectURL(image)}" alt="image">
-        <span onclick="deleteQueuedImage(${index})">&times;</span>
-        </div>`;
-        });
-
-        queuedDiv.innerHTML = images
-      }
-
-      function deleteQueuedImage(index){
-        queuedImageArray.splice(index, 1);
-        displayQueuedImages();
-      }
-
-      queuedForm.addEventListener("submit",(e)=>{
-        e.preventDefault();
-      })
-
-      uploadImagesToServer.addEventListener("click",sendQueuedImagesToServer)
-
-      function sendQueuedImagesToServer(){
-        const formData = new FormData(queuedForm);
-        queuedImageArray.forEach((image,index)=>{
-            formData.append(`file[${index}]`,image)
-        })
-
-        fetch('/',{
-            method: 'POST',
-            body: formData
-        })
-
-        .then(Response =>{
-            if(Response.status !== 200) throw Error(Response.statusText)
-            location.reload();
-        })
-        .catch(error =>{
-            serverMessage.innerHTML = error
-            serverMessage.style.cssText = "background-color: #f8d7da; color: #b71c1c"
-        })
-      }
-
-    </script>
-
     <script src="script.js"></script>
   </body>
 </html>
